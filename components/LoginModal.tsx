@@ -9,78 +9,79 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ open, onOpenChange, onLoginSuccess }: LoginModalProps) {
-  const [mode, setMode] = useState("login"); // "login" o "register"
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Resetea los campos de formulario
   const resetFields = () => {
     setFullName("");
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
   };
 
-  // Alterna entre modo login y registro
   const handleToggleMode = () => {
-    setMode(mode === "login" ? "register" : "login");
+    setMode(m => (m === "login" ? "register" : "login"));
     setError("");
     setSuccess("");
     resetFields();
   };
 
-  // Maneja el envío del formulario (login o registro según el modo)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Validación básica en frontend
     if (mode === "register") {
-      // Verificar campos obligatorios
-      if (!fullName.trim() || !email.trim() || !password.trim()) {
+      // 1) Campos obligatorios
+      if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
         setError("Por favor completa todos los campos.");
         return;
       }
-      // Verificar formato de email
+      // 2) Email válido
       if (!/\S+@\S+\.\S+/.test(email)) {
         setError("Por favor ingresa un email válido.");
         return;
       }
-      // Verificar longitud mínima de contraseña
+      // 3) Contraseña mínima
       if (password.length < 6) {
         setError("La contraseña debe tener al menos 6 caracteres.");
         return;
       }
+      // 4) Confirmación
+      if (password !== confirmPassword) {
+        setError("Las contraseñas no coinciden.");
+        return;
+      }
+
       try {
         await registerUser(fullName, email, password);
-        // Mostrar mensaje de éxito y cambiar a modo login
         setSuccess("¡Registro exitoso! Ahora puedes iniciar sesión.");
         setMode("login");
         resetFields();
       } catch (err: any) {
-        // Mostrar mensaje de error (puede venir de axios)
         setError(err.response?.data?.message || "Error al registrar el usuario.");
       }
+
     } else {
-      // Modo login
-      // Verificar campos obligatorios
+      // LOGIN
       if (!email.trim() || !password.trim()) {
         setError("Por favor completa todos los campos.");
         return;
       }
-      // Verificar formato de email
       if (!/\S+@\S+\.\S+/.test(email)) {
         setError("Por favor ingresa un email válido.");
         return;
       }
       try {
         await loginUser(email, password);
-        // Login exitoso: cerrar modal, limpiar campos y notificar al padre
         onOpenChange(false);
-        onLoginSuccess(email.split('@')[0]); // Usamos la parte del email antes del @ como nombre de usuario
+        const name = localStorage.getItem("fullName") ?? "";
+        onLoginSuccess(name);
         resetFields();
       } catch (err: any) {
         setError(err.response?.data?.message || "Error al iniciar sesión.");
@@ -88,7 +89,6 @@ export default function LoginModal({ open, onOpenChange, onLoginSuccess }: Login
     }
   };
 
-  // Si el modal no está abierto, no renderizamos nada
   if (!open) return null;
 
   return (
@@ -98,58 +98,62 @@ export default function LoginModal({ open, onOpenChange, onLoginSuccess }: Login
           {mode === "login" ? "Iniciar Sesión" : "Registro"}
         </h2>
 
-        {/* Mensajes de error o éxito */}
         {error && (
-          <div className="mb-4 text-red-600 bg-red-100 p-3 rounded">
-            {error}
-          </div>
+          <div className="mb-4 text-red-600 bg-red-100 p-3 rounded">{error}</div>
         )}
         {success && (
-          <div className="mb-4 text-green-600 bg-green-100 p-3 rounded">
-            {success}
-          </div>
+          <div className="mb-4 text-green-600 bg-green-100 p-3 rounded">{success}</div>
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Campo Nombre completo (solo en registro) */}
           {mode === "register" && (
             <div className="mb-4">
               <label className="block mb-1 font-medium">Nombre completo</label>
               <input
                 type="text"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={e => setFullName(e.target.value)}
                 className="w-full border border-gray-300 p-2 rounded"
                 placeholder="Ingresa tu nombre"
               />
             </div>
           )}
 
-          {/* Campo Email */}
           <div className="mb-4">
             <label className="block mb-1 font-medium">Email</label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               className="w-full border border-gray-300 p-2 rounded"
               placeholder="Ingresa tu email"
             />
           </div>
 
-          {/* Campo Contraseña */}
           <div className="mb-4">
             <label className="block mb-1 font-medium">Contraseña</label>
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               className="w-full border border-gray-300 p-2 rounded"
               placeholder="Ingresa tu contraseña"
             />
           </div>
 
-          {/* Botón de enviar */}
+          {mode === "register" && (
+            <div className="mb-4">
+              <label className="block mb-1 font-medium">Confirmar contraseña</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded"
+                placeholder="Repite tu contraseña"
+              />
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
@@ -158,7 +162,6 @@ export default function LoginModal({ open, onOpenChange, onLoginSuccess }: Login
           </button>
         </form>
 
-        {/* Enlace para cambiar de modo */}
         <div className="mt-4 text-sm text-center">
           {mode === "login" ? (
             <p>
@@ -183,7 +186,6 @@ export default function LoginModal({ open, onOpenChange, onLoginSuccess }: Login
           )}
         </div>
 
-        {/* Botón para cerrar el modal */}
         <button
           onClick={() => onOpenChange(false)}
           className="mt-4 w-full bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400"

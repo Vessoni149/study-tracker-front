@@ -245,7 +245,7 @@ export default function MonthlyChart({
               
               <button 
                 onClick={goToCurrentMonth}
-                className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:bg-secondary/80"
+                className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:text-gray-500 cursor-pointer"
               >
                 Hoy
               </button>
@@ -255,7 +255,7 @@ export default function MonthlyChart({
             <>
               <button 
                 onClick={goToPreviousWeek}
-                className="p-1 rounded-full hover:bg-secondary"
+                className="p-1 rounded-full hover:text-gray-500 cursor-pointer"
                 aria-label="Semana anterior"
               >
                 <ChevronLeft size={20} />
@@ -267,7 +267,7 @@ export default function MonthlyChart({
               
               <button 
                 onClick={goToNextWeek}
-                className="p-1 rounded-full hover:bg-secondary"
+                className="p-1 rounded-full hover:text-gray-500 cursor-pointer"
                 aria-label="Semana siguiente"
               >
                 <ChevronRight size={20} />
@@ -276,7 +276,7 @@ export default function MonthlyChart({
               {!isCurrentWeek() && (
                 <button 
                   onClick={goToCurrentWeek}
-                  className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:bg-secondary/80"
+                  className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:text-gray-500 cursor-pointer"
                 >
                   Semana actual
                 </button>
@@ -289,20 +289,25 @@ export default function MonthlyChart({
           <button
             onClick={() => setZoomLevel("week")}
             className={`px-3 py-1 text-sm rounded-md ${
-              zoomLevel === "week" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-            }`}
+              zoomLevel === "week"
+                ? "bg-gray-300 text-black"
+                : "bg-secondary text-secondary-foreground"
+            } hover:text-gray-500 cursor-pointer`}
           >
             Semana
           </button>
           <button
             onClick={() => setZoomLevel("month")}
             className={`px-3 py-1 text-sm rounded-md ${
-              zoomLevel === "month" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-            }`}
+              zoomLevel === "month"
+                ? "bg-gray-300 text-black"
+                : "bg-secondary text-secondary-foreground"
+            } hover:text-gray-500 cursor-pointer`}
           >
             Mes
           </button>
         </div>
+
       </div>
 
       <div className="h-[300px]">

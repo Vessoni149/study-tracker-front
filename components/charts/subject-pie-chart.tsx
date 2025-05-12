@@ -23,9 +23,7 @@ export default function SubjectPieChart({ studySessions, subjects }: SubjectPieC
     )
   }
 
-  // Log para depuración
-  console.log("Sessions:", studySessions)
-  console.log("Subjects:", subjects)
+  
 
   // Crear un mapa de nombres de materias a colores para referencia rápida
   const subjectColorMap = subjects.reduce((map, subject) => {
@@ -74,7 +72,6 @@ export default function SubjectPieChart({ studySessions, subjects }: SubjectPieC
     )
   }
 
-  console.log("Subject totals with colors:", subjectTotals)
 
   return (
     <div className="h-[300px]">

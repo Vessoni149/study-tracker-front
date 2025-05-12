@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import type { StudySession } from "@/lib/types"
 import { formatDate, groupSessionsByDate } from "@/lib/utils"
+import type { TooltipProps } from "recharts"
+import type { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent"
 
 interface DailyChartProps {
   studySessions: StudySession[]
@@ -88,6 +90,27 @@ export default function DailyChart({ studySessions }: DailyChartProps) {
   const primaryColor = "#31c500"
   const secondaryColor = "#6afb9f"
 
+
+
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white text-black dark:bg-gray-800 dark:text-white p-2 rounded-md shadow-md">
+        <p className="text-sm font-semibold">{`Día: ${formatDate(label as string)}`}</p>
+        <p className="text-sm">{`Horas estudiadas: ${payload[0].value} h`}</p>
+      </div>
+    )
+  }
+  return null
+}
+
+
+
   return (
     <div className="space-y-4">
       {/* Controles de navegación */}
@@ -95,22 +118,22 @@ export default function DailyChart({ studySessions }: DailyChartProps) {
         <div className="flex items-center space-x-2">
           {zoomLevel === "month" ? (
             <>
-              <button onClick={goToPrevMonth} className="p-1 rounded-full hover:bg-secondary">
+              <button onClick={goToPrevMonth} className="p-1 rounded-full hover:text-gray-500 cursor-pointer">
                 <ChevronLeft size={20} />
               </button>
               <h3 className="font-medium">
                 {monthNames[month]} {monthYear}
               </h3>
-              <button onClick={goToNextMonth} className="p-1 rounded-full hover:bg-secondary">
+              <button onClick={goToNextMonth} className="p-1 rounded-full hover:text-gray-500 cursor-pointer">
                 <ChevronRight size={20} />
               </button>
-              <button onClick={goToCurrentMonth} className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:bg-secondary/80">
+              <button onClick={goToCurrentMonth} className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:text-gray-500 cursor-pointer">
                 Hoy
               </button>
             </>
           ) : zoomLevel === "year" ? (
             <>
-              <button onClick={goToPrevYear} className="p-1 rounded-full hover:bg-secondary">
+              <button onClick={goToPrevYear} className="p-1 rounded-full hover:text-gray-500 cursor-pointery">
                 <ChevronLeft size={20} />
               </button>
               <h3 className="font-medium">
@@ -119,7 +142,7 @@ export default function DailyChart({ studySessions }: DailyChartProps) {
               <button onClick={goToNextYear} className="p-1 rounded-full hover:bg-secondary">
                 <ChevronRight size={20} />
               </button>
-              <button onClick={goToCurrentYear} className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:bg-secondary/80">
+              <button onClick={goToCurrentYear} className="ml-2 px-2 py-1 text-xs rounded bg-secondary hover:text-gray-500 cursor-pointer">
                 Año actual
               </button>
             </>
@@ -130,23 +153,36 @@ export default function DailyChart({ studySessions }: DailyChartProps) {
         <div className="flex space-x-2">
           <button
             onClick={() => setZoomLevel("month")}
-            className={`px-3 py-1 text-sm rounded-md ${zoomLevel === "month" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}
+            className={`px-3 py-1 text-sm rounded-md ${
+              zoomLevel === "month"
+                ? "bg-gray-300 text-black"
+                : "bg-secondary text-secondary-foreground"
+            } hover:text-gray-500 cursor-pointer`}
           >
             Mes
           </button>
           <button
             onClick={() => setZoomLevel("year")}
-            className={`px-3 py-1 text-sm rounded-md ${zoomLevel === "year" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}
+            className={`px-3 py-1 text-sm rounded-md ${
+              zoomLevel === "year"
+                ? "bg-gray-300 text-black"
+                : "bg-secondary text-secondary-foreground"
+            } hover:text-gray-500 cursor-pointer`}
           >
             Año
           </button>
           <button
             onClick={() => setZoomLevel("all")}
-            className={`px-3 py-1 text-sm rounded-md ${zoomLevel === "all" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}
+            className={`px-3 py-1 text-sm rounded-md ${
+              zoomLevel === "all"
+                ? "bg-gray-300 text-black"
+                : "bg-secondary text-secondary-foreground"
+            } hover:text-gray-500 cursor-pointer`}
           >
             Todo
           </button>
         </div>
+
       </div>
 
       {/* Gráfico */}
@@ -158,12 +194,13 @@ export default function DailyChart({ studySessions }: DailyChartProps) {
             </CardContent>
           </Card>
         ) : (
+          <div className="custom-brush-wrapper h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={filteredData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <Brush
                 dataKey="date"
                 height={30}
-                stroke={primaryColor}
+                stroke={"#000"}
                 travellerWidth={10}
                 startIndex={filteredData.length - 90}  // por ejemplo abre en últimos 90 días
                 endIndex={filteredData.length - 1}
@@ -180,9 +217,8 @@ export default function DailyChart({ studySessions }: DailyChartProps) {
                 label={{ value: "Horas", angle: -90, position: "insideLeft", style: { textAnchor: "middle" } }}
                 tick={{ fontSize: 12 }}
               />
-              <Tooltip
-                formatter={(value) => [`${value} horas`, "Tiempo de estudio"]}
-                labelFormatter={(label) => `Fecha: ${formatDate(label)}`} />
+              <Tooltip content={<CustomTooltip />} />
+
               <Area
                 type="monotone"
                 dataKey="hours"
@@ -192,6 +228,7 @@ export default function DailyChart({ studySessions }: DailyChartProps) {
                 fill="url(#colorHours)" />
             </AreaChart>
           </ResponsiveContainer>
+          </div>
         )}
       </div>
     </div>

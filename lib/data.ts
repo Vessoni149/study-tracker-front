@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { StudySession, Subject } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = "https://study-tracker-sxet.onrender.com";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,12 +44,10 @@ api.interceptors.response.use(
       console.warn("Token expirado o inválido. Redirigiendo al login...");
 
       // Limpiar token y otros datos si es necesario
-      localStorage.removeItem("authToken");
-
-      // Redirigir al login (asumiendo que usás Next.js)
-      if (typeof window !== "undefined") {
-        window.location.href = "/login"; // O donde tengas el login
-      }
+      localStorage.removeItem("jwtToken");
+      localStorage.removeItem("fullName");
+      window.dispatchEvent(new Event("logout"));
+    
     }
 
     return Promise.reject(error);
@@ -62,7 +60,6 @@ api.interceptors.response.use(
 export const getStudySessions = async (): Promise<StudySession[]> => {
   try {
     const { data } = await api.get("/session/getAll");
-    console.log("API response data:", data.data);
     
     // Transformar los datos al formato esperado por los componentes
     const transformedData = data.data.map((session: any) => ({
@@ -77,7 +74,6 @@ export const getStudySessions = async (): Promise<StudySession[]> => {
       studyType: session.studyType,
     }));
     
-    console.log("Transformed data:", transformedData);
     return transformedData || [];
     
   } catch (error) {
@@ -86,43 +82,52 @@ export const getStudySessions = async (): Promise<StudySession[]> => {
   }
 };
 
-// Crear o editar una sesión de estudio
-export const addStudySession = async (session: StudySession, isEdit = false): Promise<StudySession | null> => {
+export const createStudySession = async (dto: {
+  date: string;
+  subject: { name: string; color: string };
+  hours: number;
+  studyType: string;
+}): Promise<StudySession | null> => {
   try {
-    const url = isEdit ? `/session/edit/${session.id}` : "/session/create";
-    const method = isEdit ? "PUT" : "POST";
-
-    const sessionDto = {
-      date: session.date,
-      subject: session.subject,
-      hours: session.hours,
-      studyType: session.studyType,
-    };
-
-    const { data } = await api.request({
-      url,
-      method,
-      headers: { "Content-Type": "application/json" },
-      data: sessionDto,
-    });
-
+    const { data } = await api.post("/session/create", dto);
     return data.data || null;
-  } catch (error) {
-    console.error("Error saving study session:", error);
+  } catch (e) {
+    console.error("Error creating session:", e);
     return null;
   }
 };
 
-// Eliminar sesión de estudio
-export const deleteStudySession = async (id: string): Promise<boolean> => {
+export const editStudySession = async (
+  id: string,
+  dto: {
+    date: string;
+    subjectId: string;
+    hours: number;
+    studyType: string;
+  }
+): Promise<StudySession | null> => {
   try {
-    await api.delete(`/session/delete/${id}`);
-    return true;
-  } catch (error) {
-    console.error("Error deleting study session:", error);
-    return false;
+    const { data } = await api.put(`/session/edit/${id}`, dto);
+    return data.data || null;
+  } catch (e) {
+    console.error("Error editing session:", e);
+    return null;
   }
 };
+
+
+export const softDeleteStudySession = async (
+  id: string
+): Promise<StudySession> => {
+  try {
+    const { data } = await api.patch("/session/soft-delete/" + id);
+    return data.data as StudySession;
+  } catch (error: any) {
+    console.error("Error al vaciar la sesión:", error);
+    throw error;
+  }
+};
+
 
 export const getSubjects = async (): Promise<Subject[]> => {
   try {
@@ -135,17 +140,18 @@ export const getSubjects = async (): Promise<Subject[]> => {
 };
 
 // Crear una materia
-export const addSubject = async (subject: Omit<Subject, 'id'>, isUpdate: boolean = false): Promise<Subject | null> => {
+export const addSubject = async (
+  subject: { id?: string; name: string; color: string },
+  isUpdate: boolean = false
+): Promise<Subject | null> => {
   try {
-    // Si es una actualización, usamos el endpoint de update
-    if (isUpdate && 'id' in subject) {
+    if (isUpdate && subject.id) {
       const { data } = await api.put(`/subject/edit/${subject.id}`, {
         name: subject.name,
         color: subject.color
       });
       return data.data || null;
     } else {
-      // Si es una creación, usamos el endpoint de create
       const { data } = await api.post("/subject/create", {
         name: subject.name,
         color: subject.color
@@ -157,6 +163,7 @@ export const addSubject = async (subject: Omit<Subject, 'id'>, isUpdate: boolean
     return null;
   }
 };
+
 
 // Eliminar una materia
 export const deleteSubject = async (subjectId: string): Promise<boolean> => {
@@ -172,13 +179,14 @@ export const deleteSubject = async (subjectId: string): Promise<boolean> => {
 export const loginUser = async (email: string, password: string) => {
   try {
     
-    const response = await api.post("api/auth/login", JSON.stringify({ email, password }), {
+    const response = await api.post("/api/auth/login", JSON.stringify({ email, password }), {
       headers: {
         'Content-Type': 'application/json'
       }
     });
     console.log('Respuesta recibida:', response);
     localStorage.setItem("jwtToken", response.data.data.token);
+    localStorage.setItem("fullName", response.data.data.fullName);
   } catch (error) {
     console.error("Error durante el login:", error);
     if (axios.isAxiosError(error)) {

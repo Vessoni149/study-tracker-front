@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.custom-brush-wrapper .recharts-brush-texts text {
+  fill: #000000; /* o el color de texto que quieras */
+  background: #6d7786; /* gris oscuro */
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  pointer-events: none;
+}

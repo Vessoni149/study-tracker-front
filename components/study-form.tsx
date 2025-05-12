@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2, Plus, Trash, Edit } from "lucide-react"
 import type { StudySession, Subject } from "@/lib/types"
-import { addStudySession, getSubjects, deleteSubject } from "@/lib/data"
+import { createStudySession, editStudySession, getSubjects, deleteSubject } from "@/lib/data";
 import SubjectForm from "./subject-form"
 
 interface StudyFormProps {
@@ -49,9 +49,7 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
   const fetchSubjects = async () => {
     try {
       const res = await getSubjects()
-      console.log("Materias cargadas:", res) // Log para debugging
       setLocalSubjects(res)
-      // Incrementamos la clave cada vez que las materias cambian
       setSelectKey(prev => prev + 1)
     } catch (error) {
       console.error("Error al cargar materias:", error) // Log para debugging
@@ -66,10 +64,7 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
   // Cuando editSession cambia, precargar fechas y valores
   useEffect(() => {
     if (editSession) {
-      // Asegúrate de que la fecha esté en formato ISO antes de configurarla en el estado
       let isoDate = editSession.date
-      
-      // Si la fecha viene en formato dd-MM-yyyy, conviértela a formato yyyy-MM-dd
       if (/^\d{2}-\d{2}-\d{4}$/.test(editSession.date)) {
         const [day, month, year] = editSession.date.split("-")
         isoDate = `${year}-${month}-${day}`
@@ -108,55 +103,79 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
     return true
   }
 
+  function buildCreateDto(): {
+    date: string;
+    subject: { name: string; color: string };
+    hours: number;
+    studyType: string;
+  } {
+    const sub = localSubjects.find(s => s.name === formData.subject)!;
+    return {
+      date: formData.date,
+      subject: { name: sub.name, color: sub.color },
+      hours: formData.hours,
+      studyType: formData.type === "theoretical" ? "teórico" : "práctico",
+    };
+  }
+  
+  function buildEditDto(): {
+    date: string;
+    subjectId: string;
+    hours: number;
+    studyType: string;
+  } {
+    const sub = localSubjects.find(s => s.name === formData.subject)!;
+    return {
+      date: formData.date,
+      subjectId: sub.id,
+      hours: formData.hours,
+      studyType: formData.type === "theoretical" ? "teórico" : "práctico",
+    };
+  }
+  
+  const handleCreate = async () => {
+    const dto = buildCreateDto();
+    const created = await createStudySession(dto);
+    if (!created) throw new Error("Création fallida");
+    return created;
+  };
+  
+  const handleEdit = async () => {
+    const dto = buildEditDto();
+    const updated = await editStudySession(editSession!.id, dto);
+    if (!updated) throw new Error("Edición fallida");
+    return updated;
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateForm()) return
+    e.preventDefault();
+    if (!validateForm()) return;
   
-    setLoading(true)
+    setLoading(true);
     try {
-      // 1) Busca la materia
-      const selectedSubject = localSubjects.find(
-        sub => sub.name === formData.subject
-      )
-      if (!selectedSubject) throw new Error("Materia no encontrada")
-  
-      // 2) Mantén la fecha en formato ISO (yyyy-MM-dd) SIEMPRE
-      // El formato del input date de HTML5 ya es yyyy-MM-dd, así que no necesitamos transformarlo
-      // formData.date ya está en formato "yyyy-MM-dd"
-      
-      // 3) Construye tu payload con la fecha en formato correcto
-      const studySession: StudySession = {
-        id: editSession?.id || Date.now().toString(),
-        date: formData.date, // Ya está en formato yyyy-MM-dd
-        subject: {
-          name: selectedSubject.name,
-          color: selectedSubject.color,
-        },
-        hours: formData.hours,
-        studyType:
-          formData.type === "theoretical" ? "teórico" : "práctico",
-      }
-  
-      console.log("👉 Payload a enviar:", studySession)
-      await addStudySession(studySession, !!editSession)
+      const result = editSession
+        ? await handleEdit()
+        : await handleCreate();
   
       toast({
         title: editSession ? "Sesión actualizada" : "Sesión registrada",
         description: "Los datos se han guardado correctamente",
-      })
-      onDataChange()
-      onClose()
-    } catch (error) {
-      console.error("Error al guardar sesión:", error)
+      });
+  
+      onDataChange();
+      onClose();
+    } catch (err) {
       toast({
         title: "Error",
-        description: "Ocurrió un error al guardar los datos",
+        description: (err as Error).message || "Ocurrió un error",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+  
+  
 
   const handleDeleteSubject = async (subjectId: string) => {
     try {
@@ -180,6 +199,7 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
     setEditingSubject(undefined)
     if (shouldRefresh) {
       await fetchSubjects()
+      onDataChange(); 
     }
   }
 

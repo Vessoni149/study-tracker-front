@@ -162,13 +162,13 @@ export default function YearlyTotalHistory({ studySessions, onClose }: YearlyTot
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Historial de totales anuales</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-4">
+        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full flex flex-col flex-1 overflow-hidden">
+          <TabsList className="grid grid-cols-3 mb-4 flex-shrink-0">
             <TabsTrigger value="single">Año individual</TabsTrigger>
             <TabsTrigger value="all">Todos los años</TabsTrigger>
             <TabsTrigger value="compare" disabled={!canCompare}>
@@ -177,7 +177,7 @@ export default function YearlyTotalHistory({ studySessions, onClose }: YearlyTot
           </TabsList>
           
           {/* Single Year View */}
-          <TabsContent value="single" className="space-y-4">
+          <TabsContent value="single" className="space-y-4 overflow-y-auto pr-2 flex-1">
             <div className="flex items-center justify-between">
               <Button 
                 variant="outline" 
@@ -258,7 +258,7 @@ export default function YearlyTotalHistory({ studySessions, onClose }: YearlyTot
           </TabsContent>
           
           {/* All Years View */}
-          <TabsContent value="all">
+          <TabsContent value="all" className="space-y-6 overflow-y-auto pr-2 flex-1">
             <div className="h-[300px]">
               {allYearsChartData.length === 0 ? (
                 <Card>
@@ -291,7 +291,7 @@ export default function YearlyTotalHistory({ studySessions, onClose }: YearlyTot
               )}
             </div>
 
-            <div className="overflow-y-auto max-h-[200px] mt-6">
+            <div className="overflow-y-auto max-h-[200px]">
               <div className="grid grid-cols-1 gap-4">
                 {yearlyData.map((data, index) => (
                   <Card key={index} className="border-l-4 border-l-green-500">
@@ -324,7 +324,7 @@ export default function YearlyTotalHistory({ studySessions, onClose }: YearlyTot
           </TabsContent>
           
           {/* Compare Years View */}
-          <TabsContent value="compare" className="space-y-4">
+          <TabsContent value="compare" className="space-y-4 overflow-y-auto pr-2 flex-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Button 

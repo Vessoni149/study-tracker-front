@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Pencil, Trash2, Calendar } from "lucide-react"
 import type { StudySession, Subject } from "@/lib/types"
-import { deleteStudySession } from "@/lib/data"
+import { softDeleteStudySession } from "@/lib/data"
 import { useToast } from "@/components/ui/use-toast"
 import StudyForm from "./study-form"
 import {
@@ -23,6 +23,7 @@ import {
 
 interface HistoryModalProps {
   studySessions: StudySession[]
+  setStudySessions: React.Dispatch<React.SetStateAction<StudySession[]>>
   subjects: Subject[]
   onClose: () => void
   onDataChange: () => void
@@ -31,6 +32,7 @@ interface HistoryModalProps {
 
 export default function HistoryModal({
   studySessions,
+  setStudySessions,
   subjects,
   onClose,
   onDataChange,
@@ -96,33 +98,35 @@ export default function HistoryModal({
       })
   }, [studySessions, selectedMonth])
 
-  const handleDelete = async (session: StudySession) => {
+  const handleSoftDelete = async (sessionToDelete: StudySession) => {
     try {
-      // This would be an API call in a real application
-      // await fetch(`/api/study-sessions/${session.id}`, {
-      //   method: 'DELETE'
-      // })
-
-      // For now, use localStorage
-      deleteStudySession(session.id)
-
+      // 1) Llamas sólo con el ID y recibes la sesión actualizada
+      const updated = await softDeleteStudySession(sessionToDelete.id);
+  
+      // 2) Reemplazas en el array local
+      setStudySessions(prev =>
+        prev.map(s => (s.id === updated.id ? updated : s))
+      );
+  
       toast({
-        title: "Sesión eliminada",
-        description: "La sesión se ha eliminado correctamente",
-      })
-
-      onDataChange()
-      setDeletingSession(null)
+        title: "Sesión marcada como eliminada",
+        description: "Los datos se han vaciado correctamente",
+      });
+  
+      // 3) (Opcional) Refrescas el padre si lo deseas
+      onDataChange();
+      setDeletingSession(null);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Ocurrió un error al eliminar la sesión",
+        description: "No se pudo vaciar la sesión",
         variant: "destructive",
-      })
+      });
     }
-  }
-
-
+  };
+  
+  
+  
   
 
   return (
@@ -231,7 +235,7 @@ export default function HistoryModal({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deletingSession && handleDelete(deletingSession)}>
+            <AlertDialogAction onClick={() => deletingSession && handleSoftDelete(deletingSession)}>
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

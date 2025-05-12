@@ -2,12 +2,11 @@ export interface StudySession {
   id: string
   date: string // DD-MM-YYYY
   subject: {
-    name: string,
-    color: string
-  }
+    name: string | null
+    color: string | null
+  } | null
   hours: number
-  studyType: "teórico" | "práctico" 
-
+  studyType: "teórico" | "práctico" | null
 }
 
 export interface Subject {
@@ -15,4 +14,9 @@ export interface Subject {
   name: string
   color: string
 }
-
+export interface SessionDto {
+  date: string;
+  subjectId: string;
+  hours: number;
+  studyType: string;
+}
