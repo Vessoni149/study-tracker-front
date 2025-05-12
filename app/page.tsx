@@ -344,8 +344,8 @@ export default function Dashboard() {
                     <CardContent>
                       <MonthlyChart
                         studySessions={studySessions}
-                        month={new Date().getMonth()}
-                        year={currentYear}
+                        initialMonth={new Date().getMonth()}
+                        initialYear={currentYear}
                       />
                     </CardContent>
                   </Card>
