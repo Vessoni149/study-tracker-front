@@ -37,7 +37,7 @@ export default function SubjectPieChart({ studySessions, subjects }: SubjectPieC
       const totalHours = studySessions
         .filter((session) => {
           // Comprobamos si session.subject es un objeto con propiedad name o directamente un string
-          const sessionSubjectName = typeof session.subject === 'object' 
+          const sessionSubjectName = typeof session.subject === 'object' && session.subject !== null
             ? session.subject.name 
             : session.subject
           

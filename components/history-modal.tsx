@@ -192,7 +192,7 @@ export default function HistoryModal({
                       <TableCell>{session.date}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          {session.subject.name}
+                          {session.subject?.name || "Sin materia"}
                         </div>
                       </TableCell>
                       <TableCell>{session.hours}</TableCell>

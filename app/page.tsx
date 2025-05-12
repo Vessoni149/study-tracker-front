@@ -465,9 +465,8 @@ export default function Dashboard() {
                         ) : (
                           subjects.map((subject, index) => {
                             const totalHours = studySessions
-                              .filter((session) => session.subject.name === subject.name)
+                              .filter((session) => session.subject?.name === subject.name)
                               .reduce((sum, session) => sum + session.hours, 0);
-                              
                             return totalHours > 0 ? (
                               <div key={index} className="flex items-center justify-between">
                                 <div className="flex items-center">

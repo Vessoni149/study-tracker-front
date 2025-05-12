@@ -63,7 +63,7 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
 
   // Cuando editSession cambia, precargar fechas y valores
   useEffect(() => {
-    if (editSession) {
+    if (editSession && editSession.subject) {
       let isoDate = editSession.date
       if (/^\d{2}-\d{2}-\d{4}$/.test(editSession.date)) {
         const [day, month, year] = editSession.date.split("-")
@@ -72,7 +72,7 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
       
       setFormData({
         date: isoDate,
-        subject: editSession.subject.name,
+        subject: editSession.subject.name || "",
         hours: editSession.hours,
         type: editSession.studyType === "teórico" ? "theoretical" : "practical",
       })

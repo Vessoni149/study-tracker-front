@@ -10,12 +10,16 @@ interface MonthlyChartProps {
   studySessions: StudySession[]
   initialMonth?: number // 0-11, opcional para permitir configurar el mes inicial
   initialYear?: number // opcional para permitir configurar el año inicial
+  currentMonth?: number // opcional, para compatibilidad con código existente
+  currentYear?: number // opcional, para compatibilidad con código existente
 }
 
 export default function MonthlyChart({ 
   studySessions, 
   initialMonth = new Date().getMonth(), 
-  initialYear = new Date().getFullYear() 
+  initialYear = new Date().getFullYear(),
+  currentMonth,
+  currentYear 
 }: MonthlyChartProps) {
   const [zoomLevel, setZoomLevel] = useState<"week" | "month">("month")
   const [month, setMonth] = useState<number>(initialMonth)
@@ -133,9 +137,17 @@ export default function MonthlyChart({
       day: Number.parseInt(day),
       dayOfWeek: adjustedDayOfWeek,
       dayName: getDayName(adjustedDayOfWeek),
+      shortDate: `${day}/${monthStr}`,
+      fullDate: `${day}/${monthStr}/${year}`,
       hours: dayTotal,
     }
   })
+
+// Need to update component state based on legacy props
+  useEffect(() => {
+    if (currentMonth !== undefined) setMonth(currentMonth);
+    if (currentYear !== undefined) setYear(currentYear || new Date().getFullYear());
+  }, [currentMonth, currentYear]);
 
   // Function to get week days with offset (for week navigation)
   const getWeekDays = (offset: number = 0) => {
@@ -179,9 +191,9 @@ export default function MonthlyChart({
         dayName: `${getDayName(i + 1)}\n${shortDate}`, // Include date with day name
         shortDate,
         fullDate: `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`,
-        hours: dayTotal,
-        month: date.getMonth(),
-        year: date.getFullYear(),
+      hours: dayTotal,
+      month: date.getMonth(),
+      year: date.getFullYear(),
       })
     }
 

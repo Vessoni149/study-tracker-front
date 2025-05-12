@@ -410,8 +410,8 @@ export default function YearlyTotalHistory({ studySessions, onClose }: YearlyTot
                       radius={[4, 4, 0, 0]} 
                     />
                     <Bar 
-                      dataKey={compareYear?.toString()} 
-                      name={compareYear?.toString()}  
+                      dataKey={compareYear ? compareYear.toString() : ""} 
+                      name={compareYear ? compareYear.toString() : ""}  
                       fill="#93c5fd" 
                       radius={[4, 4, 0, 0]} 
                     />
