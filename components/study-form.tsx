@@ -92,7 +92,7 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
       toast({ title: "Error de validación", description: "La fecha no puede ser futura", variant: "destructive" })
       return false
     }
-    if (formData.hours <= 0 || formData.hours > 24) {
+    if (formData.hours < 0 || formData.hours > 24) {
       toast({ title: "Error de validación", description: "Las horas deben ser un número positivo y menor a 24", variant: "destructive" })
       return false
     }
