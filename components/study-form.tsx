@@ -221,7 +221,7 @@ export default function StudyForm({ subjects, onClose, onDataChange, editSession
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="hours">Horas dedicadas</Label>
-                  <Input id="hours" type="number" min="0.5" max="24" step="0.5"
+                  <Input id="hours" type="number" min="0" max="24" step="0.5"
                     value={formData.hours} onChange={e => handleChange('hours', parseFloat(e.target.value))} required />
                 </div>
               </div>
